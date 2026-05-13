@@ -1,23 +1,18 @@
 package se.kth.iv1350.repairElectricBike.view;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import se.kth.iv1350.repairElectricBike.controller.Controller;
-import se.kth.iv1350.repairElectricBike.controller.OperationFailedException;
 import se.kth.iv1350.repairElectricBike.dto.CustomerData;
 import se.kth.iv1350.repairElectricBike.dto.SummaryDTO;
 import se.kth.iv1350.repairElectricBike.integration.CustomerNotFoundException;
-import se.kth.iv1350.repairElectricBike.integration.CustomerRegistry;
+import se.kth.iv1350.repairElectricBike.integration.CustomerRegistryException;
 import se.kth.iv1350.repairElectricBike.integration.FileLogger;
-import se.kth.iv1350.repairElectricBike.model.RepairTask;
 
 /**
  * Hard-coded view used instead of a real user interface in this seminar solution.
  */
 public class View {
     private final Controller controller;
-    private final FileLogger errorLogger = new FileLogger("error-log.txt");
+    private final FileLogger errorLogger;
 
     /**
      * Creates a view.
@@ -26,71 +21,70 @@ public class View {
      */
     public View(Controller controller) {
         this.controller = controller;
-        controller.addRepairOrderObserver(new RepairOrderView());
-        controller.addRepairOrderObserver(new RepairOrderLogger("repair-order-log.txt"));
+        this.errorLogger = new FileLogger("error-log.txt"); // Setup developer logger
     }
 
     /**
      * Runs the basic flow with hard-coded calls to the controller.
      */
     public void runBasicFlow() {
+        // Register the Observers (Task 2a)
+        controller.addRepairOrderObserver(new RepairOrderView());
+        
+        // FIXED: We now pass the required String parameter to the logger!
+        controller.addRepairOrderObserver(new RepairOrderLogger("repair-order-log.txt"));
+
         System.out.println("Date: " + controller.getCurrentDate());
 
         try {
+            // RECEPTIONIST
             CustomerData customerData = controller.getCustomer("0701234567");
+            if (customerData == null) {
+                System.out.println("Customer not found.");
+                return;
+            }
+            System.out.println("Customer data:");
             System.out.println(customerData);
 
             int orderId = controller.startRepairOrder("0701234567", "Battery does not charge.");
+            System.out.println("Created repair order id: " + orderId);
 
+            // TECHNICIAN
             boolean found = controller.findRepairOrder(orderId);
             if (found) {
                 controller.addDiagnostic(orderId, "Battery and its connector are damaged.");
-
-                List<RepairTask> tasks = new ArrayList<>();
-                tasks.add(new RepairTask("Replace connector", 200));
-                tasks.add(new RepairTask("Replace battery", 1200));
-                controller.addTasks(orderId, tasks);
+                
+                controller.addTasks(orderId, new String[] {"Replace connector", "Replace Battery"});
             } else {
                 System.out.println("Repair order not found.");
             }
-
+            
+            // RECEPTIONIST
             SummaryDTO summary = controller.getRepairSummary(orderId);
-            if (summary != null) {
-                showRepairOrderSummary(summary);
-            }
+            showRepairOrderSummary(summary);
 
             controller.acceptRepair(orderId);
 
-        } catch (CustomerNotFoundException exc) {
-            System.out.println("USER MESSAGE: Could not find customer. Check the phone number and try again.");
-        } catch (OperationFailedException exc) {
-            System.out.println("USER MESSAGE: The customer registry is unavailable. Please try again later.");
-            errorLogger.logException(exc);
-        }
-
-        testMissingCustomer();
-        testDatabaseFailure();
-    }
-
-    private void testMissingCustomer() {
-        try {
-            controller.getCustomer("9999999999");
-        } catch (CustomerNotFoundException exc) {
-            System.out.println("USER MESSAGE: Could not find customer. Check the phone number and try again.");
-        } catch (OperationFailedException exc) {
-            System.out.println("USER MESSAGE: The customer registry is unavailable. Please try again later.");
-            errorLogger.logException(exc);
-        }
-    }
-
-    private void testDatabaseFailure() {
-        try {
-            controller.getCustomer(CustomerRegistry.DATABASE_FAILURE_PHONE_NUMBER);
-        } catch (CustomerNotFoundException exc) {
-            System.out.println("USER MESSAGE: Could not find customer. Check the phone number and try again.");
-        } catch (OperationFailedException exc) {
-            System.out.println("USER MESSAGE: The customer registry is unavailable. Please try again later.");
-            errorLogger.logException(exc);
+        // EXCEPTION HANDLING (Task 1)
+        } catch (CustomerNotFoundException e) {
+            System.out.println("\n*** USER MESSAGE ***");
+            System.out.println("Please double check the phone number. " + e.getMessage());
+            System.out.println("********************\n");
+            errorLogger.logText("Developer Log: " + e.getMessage());
+            
+        } catch (CustomerRegistryException e) {
+            System.out.println("\n*** USER MESSAGE ***");
+            System.out.println("The system database is currently down. Please try again later.");
+            System.out.println("********************\n");
+            
+            // FIXED: Use the error logger instead of e.printStackTrace() to clear the warning
+            errorLogger.logText("CRITICAL DB ERROR: " + e.getMessage());
+            
+        } catch (Exception e) {
+            System.out.println("\n*** USER MESSAGE ***");
+            System.out.println("An unexpected error occurred: " + e.getMessage());
+            System.out.println("********************\n");
+            errorLogger.logText("UNEXPECTED ERROR: " + e.getMessage());
         }
     }
 
@@ -100,6 +94,7 @@ public class View {
      * @param summaryDTO Repair summary to show.
      */
     public void showRepairOrderSummary(SummaryDTO summaryDTO) {
+        if (summaryDTO == null) return;
         System.out.println("\n--- REPAIR SUMMARY ---");
         System.out.println(summaryDTO);
         System.out.println("----------------------");

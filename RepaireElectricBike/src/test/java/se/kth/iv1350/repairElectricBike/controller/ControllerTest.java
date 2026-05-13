@@ -29,8 +29,9 @@ public class ControllerTest {
 
     @BeforeEach
     public void setUp() {
-        repairOrderRegistry = new RepairOrderRegistry();
-        customerRegistry = new CustomerRegistry();
+        // FIXED: Using singletons instead of new
+        repairOrderRegistry = RepairOrderRegistry.getInstance();
+        customerRegistry = CustomerRegistry.getInstance();
         date = new Date();
         printer = new Printer();
         controller = new Controller(repairOrderRegistry, customerRegistry, date, printer);
@@ -46,14 +47,14 @@ public class ControllerTest {
     }
 
     @Test
-    public void testGetCustomerReturnsCustomerData() {
+    public void testGetCustomerReturnsCustomerData() throws Exception {
         CustomerData customerData = controller.getCustomer("0707654321");
         assertNotNull(customerData, "Customer data should not be null.");
         assertEquals("Charlie Kirk", customerData.getName(), "Incorrect customer fetched.");
     }
 
     @Test
-    public void testGetRepairSummary() {
+    public void testGetRepairSummary() throws Exception {
         int orderId = controller.startRepairOrder("0707654321", "Problem");
         assertTrue(controller.findRepairOrder(orderId), "Order should be found in registry.");
         
@@ -67,7 +68,7 @@ public class ControllerTest {
     }
 
     @Test
-    public void testRejectRepair() {
+    public void testRejectRepair() throws Exception {
         int orderId = controller.startRepairOrder("0701234567", "Broken chain");
         controller.rejectRepair(orderId);
         
@@ -75,7 +76,7 @@ public class ControllerTest {
     }
 
     @Test
-    public void testAcceptRepair() {
+    public void testAcceptRepair() throws Exception {
         int orderId = controller.startRepairOrder("0701234567", "Broken motor");
         controller.acceptRepair(orderId);
         
@@ -83,7 +84,7 @@ public class ControllerTest {
     }
 
     @Test
-    public void testInvalidOrderIdReturnsGracefully() {
+    public void testInvalidOrderIdReturnsGracefully() throws Exception {
         assertFalse(controller.findRepairOrder(999), "Non-existent order should return false.");
         assertNull(controller.getRepairSummary(999), "Summary for non-existent order should be null.");
     }

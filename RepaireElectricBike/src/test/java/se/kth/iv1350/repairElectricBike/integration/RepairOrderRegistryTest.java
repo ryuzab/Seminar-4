@@ -21,7 +21,8 @@ public class RepairOrderRegistryTest {
 
     @BeforeEach
     public void setUp() {
-        registry = new RepairOrderRegistry();
+        // FIXED: Use getInstance instead of new
+        registry = RepairOrderRegistry.getInstance();
         customer = new Customer("Anna", "070", "a@b.se", new Bike("A", "B", "C"));
     }
 
@@ -49,11 +50,9 @@ public class RepairOrderRegistryTest {
     public void testDefensiveCopyingPreventsMutation() {
         int id = registry.createAndAddOrder(customer, customer.getBike(), "Flat tire");
         
-        // Fetch the order and illegally mutate it
         RepairOrder fetchedOrder = registry.findOrder(id);
         fetchedOrder.changeState(RepairOrderState.REJECTED);
         
-        // Fetch again and verify it hasn't changed inside the registry
         RepairOrder fetchedAgain = registry.findOrder(id);
         assertEquals(RepairOrderState.NEWLY_CREATED, fetchedAgain.getState(), "Registry internal state mutated without calling updateOrder!");
     }
@@ -65,7 +64,6 @@ public class RepairOrderRegistryTest {
         RepairOrder fetchedOrder = registry.findOrder(id);
         fetchedOrder.changeState(RepairOrderState.REJECTED);
         
-        // Explicitly update it via the registry
         registry.updateOrder(fetchedOrder); 
         
         RepairOrder fetchedAgain = registry.findOrder(id);
