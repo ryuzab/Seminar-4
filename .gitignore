@@ -1,0 +1,5 @@
+**/target/
+**/.DS_Store
+**/error-log.txt
+**/repair-order-log.txt
+**/*
