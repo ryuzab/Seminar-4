@@ -18,7 +18,6 @@ import se.kth.iv1350.repairElectricBike.model.RepairOrderObserver;
 import se.kth.iv1350.repairElectricBike.integration.CustomerNotFoundException;
 import se.kth.iv1350.repairElectricBike.integration.CustomerRegistryException;
 import se.kth.iv1350.repairElectricBike.model.WarrantyDiscount;
-import se.kth.iv1350.repairElectricBike.model.DiscountStrategy;
 
 
 /**

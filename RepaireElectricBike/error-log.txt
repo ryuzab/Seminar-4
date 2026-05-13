@@ -1,0 +1,20 @@
+2026-05-13T12:56:58.930414672 ERROR: Could not search for customer right now.
+se.kth.iv1350.repairElectricBike.controller.OperationFailedException: Could not search for customer right now.
+	at se.kth.iv1350.repairElectricBike.controller.Controller.getCustomer(Controller.java:73)
+	at se.kth.iv1350.repairElectricBike.view.View.testDatabaseFailure(View.java:88)
+	at se.kth.iv1350.repairElectricBike.view.View.runBasicFlow(View.java:72)
+	at se.kth.iv1350.repairElectricBike.startup.Main.main(Main.java:26)
+Caused by: se.kth.iv1350.repairElectricBike.integration.CustomerRegistryException: Could not call customer registry database for phone number: 0000000000
+	at se.kth.iv1350.repairElectricBike.integration.CustomerRegistry.findCustomerPhone(CustomerRegistry.java:37)
+	at se.kth.iv1350.repairElectricBike.controller.Controller.getCustomer(Controller.java:62)
+	... 3 more
+2026-05-13T15:00:58.537289 ERROR: Could not search for customer right now.
+se.kth.iv1350.repairElectricBike.controller.OperationFailedException: Could not search for customer right now.
+	at se.kth.iv1350.repairElectricBike.controller.Controller.getCustomer(Controller.java:73)
+	at se.kth.iv1350.repairElectricBike.view.View.testDatabaseFailure(View.java:88)
+	at se.kth.iv1350.repairElectricBike.view.View.runBasicFlow(View.java:72)
+	at se.kth.iv1350.repairElectricBike.startup.Main.main(Main.java:26)
+Caused by: se.kth.iv1350.repairElectricBike.integration.CustomerRegistryException: Could not call customer registry database for phone number: 0000000000
+	at se.kth.iv1350.repairElectricBike.integration.CustomerRegistry.findCustomerPhone(CustomerRegistry.java:37)
+	at se.kth.iv1350.repairElectricBike.controller.Controller.getCustomer(Controller.java:62)
+	... 3 more

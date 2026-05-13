@@ -15,6 +15,7 @@ public class RepairOrder {
     private String diagnosticReport;
     private final List<RepairTask> tasks = new ArrayList<>();
     private RepairOrderState state;
+    private DiscountStrategy discountStrategy = new NoDiscount();
 
     /**
      * Creates a repair order.
@@ -45,6 +46,7 @@ public class RepairOrder {
         this.diagnosticReport = other.diagnosticReport;
         this.state = other.state;
         this.tasks.addAll(other.tasks);
+        this.discountStrategy = other.discountStrategy;
     }
 
     /** @return Repair order id. */
@@ -93,12 +95,34 @@ public class RepairOrder {
      *
      * @return Total repair cost.
      */
-    public float calculateTotalCost() {
+    public void setDiscountStrategy(DiscountStrategy discountStrategy) {
+        this.discountStrategy = discountStrategy == null ? new NoDiscount() : discountStrategy;
+    }
+
+    /**
+     * Calculates total cost before any discount is applied.
+     *
+     * @return Total cost before discount.
+     */
+    public float calculateTotalCostBeforeDiscount() {
         float total = 0;
         for (RepairTask task : tasks) {
             total += task.getCost();
         }
         return total;
+    }
+
+    /**
+     * Calculates the current discount.
+     *
+     * @return Discount amount.
+     */
+    public float calculateDiscount() {
+        return discountStrategy.calculateDiscount(this);
+    }
+
+    public float calculateTotalCost() {
+        return calculateTotalCostBeforeDiscount() - calculateDiscount();
     }
 
     /**
@@ -109,4 +133,20 @@ public class RepairOrder {
     public void changeState(RepairOrderState state) {
         this.state = state;
     }
+
+    @Override
+    public String toString() {
+        return "RepairOrder{" +
+                "id=" + id +
+                ", customer=" + customer.getName() +
+                ", phone=" + customer.getPhoneNumber() +
+                ", bike=" + bike.getBrand() + " " + bike.getModel() +
+                ", problem='" + problemDescription + "'" +
+                ", diagnostic='" + diagnosticReport + "'" +
+                ", tasks=" + tasks +
+                ", state=" + state +
+                ", total=" + calculateTotalCost() + " SEK" +
+                '}';
+    }
+
 }

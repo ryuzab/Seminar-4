@@ -6,12 +6,14 @@ import java.util.List;
 import se.kth.iv1350.repairElectricBike.model.Bike;
 import se.kth.iv1350.repairElectricBike.model.Customer;
 import se.kth.iv1350.repairElectricBike.model.RepairOrder;
+import se.kth.iv1350.repairElectricBike.model.RepairOrderObserver;
 
 /**
  * Stores and finds repair orders. Replaces a database in this seminar solution.
  */
 public class RepairOrderRegistry {
     private final List<RepairOrder> repairOrders = new ArrayList<>();
+    private final List<RepairOrderObserver> observers = new ArrayList<>();
     private int nextOrderId = 1;
 
     /**
@@ -20,10 +22,18 @@ public class RepairOrderRegistry {
     public RepairOrderRegistry() {
     }
 
-    /**
-     * Generates a new OrderId incrementing from the value of nextOrderId.
-     * * @return The newly generated OrderId.
-     */
+    /** Adds an observer that will be notified when a repair order changes. */
+    public void addObserver(RepairOrderObserver observer) {
+        observers.add(observer);
+    }
+
+    private void notifyObservers(RepairOrder repairOrder) {
+        RepairOrder copy = new RepairOrder(repairOrder);
+        for (RepairOrderObserver observer : observers) {
+            observer.repairOrderUpdated(copy);
+        }
+    }
+
     private int generateNextOrderId() {
         return nextOrderId++;
     }
@@ -35,6 +45,7 @@ public class RepairOrderRegistry {
         int newId = generateNextOrderId();
         RepairOrder newOrder = new RepairOrder(newId, customer, bike, description);
         addOrder(newOrder);
+        notifyObservers(newOrder);
         return newId;
     }
 
@@ -45,7 +56,6 @@ public class RepairOrderRegistry {
      */
     public void addOrder(RepairOrder repairOrder) {
         if (findOrder(repairOrder.getId()) == null) {
-            // Store a defensive copy
             repairOrders.add(new RepairOrder(repairOrder));
         }
     }
@@ -59,7 +69,6 @@ public class RepairOrderRegistry {
     public RepairOrder findOrder(int orderId) {
         for (RepairOrder repairOrder : repairOrders) {
             if (repairOrder.getId() == orderId) {
-                // Return a defensive copy
                 return new RepairOrder(repairOrder);
             }
         }
@@ -74,12 +83,13 @@ public class RepairOrderRegistry {
     public void updateOrder(RepairOrder repairOrder) {
         for (int i = 0; i < repairOrders.size(); i++) {
             if (repairOrders.get(i).getId() == repairOrder.getId()) {
-                // Replace with a fresh copy
                 repairOrders.set(i, new RepairOrder(repairOrder));
+                notifyObservers(repairOrder);
                 return;
             }
         }
         addOrder(repairOrder);
+        notifyObservers(repairOrder);
     }
 
     /**
@@ -92,7 +102,6 @@ public class RepairOrderRegistry {
         List<RepairOrder> matches = new ArrayList<>();
         for (RepairOrder repairOrder : repairOrders) {
             if (repairOrder.getCustomer().getPhoneNumber().equals(phoneNumber)) {
-                // Add defensive copies to the returned list
                 matches.add(new RepairOrder(repairOrder));
             }
         }
