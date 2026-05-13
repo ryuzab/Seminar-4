@@ -14,6 +14,12 @@ import se.kth.iv1350.repairElectricBike.model.Customer;
 import se.kth.iv1350.repairElectricBike.model.RepairOrder;
 import se.kth.iv1350.repairElectricBike.model.RepairOrderState;
 import se.kth.iv1350.repairElectricBike.model.RepairTask;
+import se.kth.iv1350.repairElectricBike.model.RepairOrderObserver;
+import se.kth.iv1350.repairElectricBike.integration.CustomerNotFoundException;
+import se.kth.iv1350.repairElectricBike.integration.CustomerRegistryException;
+import se.kth.iv1350.repairElectricBike.model.WarrantyDiscount;
+import se.kth.iv1350.repairElectricBike.model.DiscountStrategy;
+
 
 /**
  * The application's only controller. Handles calls from the view and coordinates model and integration objects.
@@ -40,20 +46,36 @@ public class Controller {
         this.printer = printer;
     }
 
+
+        public void addRepairOrderObserver(RepairOrderObserver observer) {
+            repairOrderRegistry.addObserver(observer);
+    }
+
     /**
      * Gets customer data by phone number.
      *
      * @param phoneNumber Customer phone number.
      * @return Customer data, or null if no customer was found.
      */
-    public CustomerData getCustomer(String phoneNumber) {
-        Customer customer = customerRegistry.findCustomerPhone(phoneNumber);
-        if (customer == null) {
-            return null;
+       public CustomerData getCustomer(String phoneNumber)
+        throws CustomerNotFoundException, OperationFailedException {
+        try {
+            Customer customer = customerRegistry.findCustomerPhone(phoneNumber);
+
+            return new CustomerData(
+                    customer.getName(),
+                    customer.getPhoneNumber(),
+                    customer.getEmailAddress(),
+                    customer.getBike().getBrand(),
+                    customer.getBike().getModel(),
+                    customer.getBike().getSerialNumber()
+            );
+        } catch (CustomerRegistryException exc) {
+            throw new OperationFailedException(
+                    "Could not search for customer right now.",
+                    exc
+            );
         }
-        Bike bike = customer.getBike();
-        return new CustomerData(customer.getName(), customer.getPhoneNumber(), customer.getEmailAddress(),
-                bike.getBrand(), bike.getModel(), bike.getSerialNumber());
     }
 
     /** * Starts a new repair order for a customer.
@@ -62,14 +84,21 @@ public class Controller {
      * @param description Customer's problem description.
      * @return Created repair order id, or -1 if the customer was not found.
      */
-    public int startRepairOrder(String phoneNumber, String description) {
-        Customer customer = customerRegistry.findCustomerPhone(phoneNumber);
-        if (customer == null) {
-            return -1;
+    public int startRepairOrder(String phoneNumber, String description)
+            throws CustomerNotFoundException, OperationFailedException {
+        try {
+            Customer customer = customerRegistry.findCustomerPhone(phoneNumber);
+            return repairOrderRegistry.createAndAddOrder(
+                    customer,
+                    customer.getBike(),
+                    description
+            );
+        } catch (CustomerRegistryException exc) {
+            throw new OperationFailedException(
+                    "Could not start repair order right now.",
+                    exc
+            );
         }
-        
-        // Pass creation responsibility to the registry
-        return repairOrderRegistry.createAndAddOrder(customer, customer.getBike(), description);
     }
 
     /**
@@ -92,6 +121,7 @@ public class Controller {
         RepairOrder order = repairOrderRegistry.findOrder(orderId);
         if (order != null) {
             order.addDiagnostic(report);
+
             repairOrderRegistry.updateOrder(order);
         }
     }
@@ -102,21 +132,17 @@ public class Controller {
      * @param orderId Repair order id.
      * @param taskDescriptions Task descriptions.
      */
-    public void addTasks(int orderId, String[] taskDescriptions) {
+    public void addTasks(int orderId, List<RepairTask> tasks) {
         RepairOrder order = repairOrderRegistry.findOrder(orderId);
-        if (order == null) {
-            return;
+
+        if (order != null) {
+            order.addTasks(tasks);
+
+            // Strategy pattern
+            order.setDiscountStrategy(new WarrantyDiscount());
+
+            repairOrderRegistry.updateOrder(order);
         }
-        
-        List<RepairTask> tasks = new ArrayList<>();
-        float currentTaskCost = RepairTask.BASE_COST; 
-        
-        for (String description : taskDescriptions) {
-            tasks.add(new RepairTask(description, currentTaskCost));
-            currentTaskCost += RepairTask.ADDITIONAL_COST; 
-        }
-        order.addTasks(tasks);
-        repairOrderRegistry.updateOrder(order);
     }
 
     /**

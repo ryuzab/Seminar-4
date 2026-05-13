@@ -3,12 +3,16 @@ package se.kth.iv1350.repairElectricBike.view;
 import se.kth.iv1350.repairElectricBike.controller.Controller;
 import se.kth.iv1350.repairElectricBike.dto.CustomerData;
 import se.kth.iv1350.repairElectricBike.dto.SummaryDTO;
+import se.kth.iv1350.repairElectricBike.integration.FileLogger;
+import se.kth.iv1350.repairElectricBike.controller.OperationFailedException;
+import se.kth.iv1350.repairElectricBike.integration.CustomerNotFoundException;
 
 /**
  * Hard-coded view used instead of a real user interface in this seminar solution.
  */
 public class View {
     private final Controller controller;
+    private final FileLogger errorLogger = new FileLogger("error-log.txt");
 
     /**
      * Creates a view.
@@ -16,8 +20,11 @@ public class View {
      * @param controller Controller called by this view.
      */
     public View(Controller controller) {
-        this.controller = controller;
-    }
+    this.controller = controller;
+    controller.addRepairOrderObserver(new RepairOrderView());
+    controller.addRepairOrderObserver(new RepairOrderLogger("repair-order-log.txt"));
+}
+    
 
     /**
      * Runs the basic flow with hard-coded calls to the controller.
@@ -27,17 +34,19 @@ public class View {
         System.out.println("Date: " + controller.getCurrentDate());
 
         // RECEPTIONIST
-        CustomerData customerData = controller.getCustomer("0701234567");
-        if (customerData == null) {
-            System.out.println("Customer not found.");
-            return;
-        }
-        System.out.println("Customer data:");
-        System.out.println(customerData);
-    
-        int orderId = controller.startRepairOrder("0701234567", "Battery does not charge.");
-        System.out.println("Created repair order id: " + orderId);
+        try {
+                CustomerData customerData = controller.getCustomer("0701234567");
+                System.out.println(customerData);
 
+                int orderId = controller.startRepairOrder("0701234567", "Battery does not charge.");
+        } catch (CustomerNotFoundException exc) {
+                System.out.println("USER MESSAGE: Could not find customer. Check the phone number and try again.");
+        } catch (OperationFailedException exc) {
+                System.out.println("USER MESSAGE: The customer registry is unavailable. Please try again later.");
+                errorLogger.logException(exc);
+        }
+
+        
         // TECHNICIAN
         boolean found = controller.findRepairOrder(orderId);
         if (found) {
