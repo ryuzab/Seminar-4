@@ -10,10 +10,10 @@ public class CustomerRegistry {
     public static final String DATABASE_FAILURE_PHONE_NUMBER = "0000000000";
     private final List<Customer> customers = new ArrayList<>();
     
-    // 1. Static instance
+
     private static final CustomerRegistry INSTANCE = new CustomerRegistry();
 
-    // 2. PRIVATE constructor
+
     private CustomerRegistry() {
         customers.add(new Customer("John Pork", "0701234567", "John@gmail.com",
                 new Bike("TheBob", "Bob", "BIKE-1001")));
@@ -21,7 +21,6 @@ public class CustomerRegistry {
                 new Bike("Neten", "yahu", "BIKE-2002")));
     }
 
-    // 3. Global access point
     public static CustomerRegistry getInstance() {
         return INSTANCE;
     }

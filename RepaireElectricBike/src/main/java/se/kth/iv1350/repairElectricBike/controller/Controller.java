@@ -41,7 +41,7 @@ public class Controller {
         if (customer == null) {
             return null;
         }
-        // FIXED: Avoid unused import warning by chaining methods directly
+
         return new CustomerData(customer.getName(), customer.getPhoneNumber(), customer.getEmailAddress(),
                 customer.getBike().getBrand(), customer.getBike().getModel(), customer.getBike().getSerialNumber());
     }

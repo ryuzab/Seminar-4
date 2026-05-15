@@ -28,10 +28,9 @@ public class View {
      * Runs the basic flow with hard-coded calls to the controller.
      */
     public void runBasicFlow() {
-        // Register the Observers (Task 2a)
+    
         controller.addRepairOrderObserver(new RepairOrderView());
         
-        // FIXED: We now pass the required String parameter to the logger!
         controller.addRepairOrderObserver(new RepairOrderLogger("repair-order-log.txt"));
 
         System.out.println("Date: " + controller.getCurrentDate());
@@ -65,7 +64,6 @@ public class View {
 
             controller.acceptRepair(orderId);
 
-        // EXCEPTION HANDLING (Task 1)
         } catch (CustomerNotFoundException e) {
             System.out.println("\n*** USER MESSAGE ***");
             System.out.println("Please double check the phone number. " + e.getMessage());
@@ -77,7 +75,7 @@ public class View {
             System.out.println("The system database is currently down. Please try again later.");
             System.out.println("********************\n");
             
-            // FIXED: Use the error logger instead of e.printStackTrace() to clear the warning
+
             errorLogger.logText("CRITICAL DB ERROR: " + e.getMessage());
             
         } catch (Exception e) {

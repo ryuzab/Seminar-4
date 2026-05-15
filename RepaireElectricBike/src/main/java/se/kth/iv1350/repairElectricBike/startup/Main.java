@@ -9,7 +9,7 @@ import se.kth.iv1350.repairElectricBike.view.View;
 
 public class Main {
     public static void main(String[] args) {
-        // USE getInstance() INSTEAD OF new
+
         RepairOrderRegistry repairOrderRegistry = RepairOrderRegistry.getInstance();
         CustomerRegistry customerRegistry = CustomerRegistry.getInstance();
         

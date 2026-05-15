@@ -35,12 +35,10 @@ public class CustomerRegistryTest {
 
     @Test
     public void testFindCustomerPhoneNotFound() {
-        // 1. Capture the exception returned by assertThrows to clear the "result ignored" warning
+
         CustomerNotFoundException exception = assertThrows(CustomerNotFoundException.class, () -> {
-            registry.findCustomerPhone("999999999"); // Call normally, no variable needed here
-        }, "Searching for a non-existent customer should throw CustomerNotFoundException.");
-        
-        // 2. Assert something about the exception to clear the "unused variable" warning
+            registry.findCustomerPhone("999999999"); 
+        }, "Searching for a non-existent customer should throw CustomerNotFoundException.");        
         assertNotNull(exception.getMessage(), "The exception should have a descriptive message.");
     }
     

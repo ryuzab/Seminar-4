@@ -21,7 +21,7 @@ public class RepairOrderRegistryTest {
 
     @BeforeEach
     public void setUp() {
-        // FIXED: Use getInstance instead of new
+
         registry = RepairOrderRegistry.getInstance();
         customer = new Customer("Anna", "070", "a@b.se", new Bike("A", "B", "C"));
     }

@@ -29,7 +29,6 @@ public class RepairOrderTest {
 
     @Test
     public void testCalculateTotalCost() {
-        // First task is 300, second is 300 (total 600)
         order.addTasks(List.of(new RepairTask("Task 1", 300), new RepairTask("Task 2", 300)));
         assertEquals(600, order.calculateTotalCost(), "calculateTotalCost gave incorrect answer.");
     }
@@ -54,10 +53,9 @@ public class RepairOrderTest {
         assertEquals(order.getProblemDescription(), copy.getProblemDescription(), "Descriptions should match.");
         assertEquals(order.getState(), copy.getState(), "States should match.");
         
-        // Assert they are two completely different objects in memory
+
         assertNotSame(order, copy, "Objects should not be the same reference.");
         
-        // Change the original, ensure the copy is completely unaffected
         order.changeState(RepairOrderState.REJECTED);
         assertEquals(RepairOrderState.READY_FOR_APPROVAL, copy.getState(), "Copy state should not change when original changes.");
     }
